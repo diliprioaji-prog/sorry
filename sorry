@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Reyalis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#1c2620;
+    --bg-dark-2:#222e26;
+    --paper:#f6f1e3;
+    --paper-shadow:#e3dcc8;
+    --ink:#2e2a23;
+    --muted:#8a8470;
+    --rose:#c76b6b;
+    --gold:#b8954b;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html,body{
+    height:100%;
+    background:radial-gradient(ellipse at 50% 30%, var(--bg-dark-2), var(--bg-dark) 70%);
+    font-family:'Lora',serif;
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  .stage{
+    height:100vh;
+    width:100vw;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .6s ease;
+    padding:24px;
+  }
+
+  .screen.active{
+    opacity:1;
+    visibility:visible;
+  }
+
+  /* ---------- ENVELOPE ---------- */
+
+  .envelope-wrap{
+    perspective:800px;
+  }
+
+  .envelope{
+    width:280px;
+    height:180px;
+    position:relative;
+    cursor:pointer;
+  }
+
+  .env-body{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(155deg,#e9dfc6,#d9cda7);
+    border-radius:4px;
+    box-shadow:0 25px 60px rgba(0,0,0,.45);
+  }
+
+  .env-body::before,
+  .env-body::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    width:0;
+    height:0;
+    border-style:solid;
+  }
+
+  .env-body::before{
+    left:0;
+    border-width:0 0 90px 140px;
+    border-color:transparent transparent #d3c69e transparent;
+  }
+
+  .env-body::after{
+    right:0;
+    border-width:0 140px 90px 0;
+    border-color:transparent transparent #d3c69e transparent;
+  }
+
+  .flap{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:55%;
+    background:linear-gradient(155deg,#efe6cc,#dccfa9);
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+    transform-origin:top center;
+    transform-style:preserve-3d;
+    transition:transform .9s cubic-bezier(.6,0,.4,1);
+    z-index:3;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+
+  .envelope.open .flap{
+    transform:rotateX(-178deg);
+  }
+
+  .seal{
+    position:absolute;
+    top:48%;
+    left:50%;
+    width:34px;
+    height:34px;
+    background:var(--rose);
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff5f0;
+    font-size:15px;
+    z-index:4;
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+    transition:opacity .3s ease, transform .3s ease;
+    animation:sealPulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes sealPulse{
+    0%,100%{ transform:translate(-50%,-50%) scale(1); }
+    50%{ transform:translate(-50%,-50%) scale(1.07); }
+  }
+
+  .envelope.open .seal{
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.4);
+  }
+
+  .to-label{
+    margin-top:34px;
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:22px;
+    color:var(--paper);
+    letter-spacing:.5px;
+  }
+
+  .hint{
+    margin-top:10px;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--muted);
+    animation:hintFade 1.8s ease-in-out infinite;
+  }
+
+  @keyframes hintFade{
+    0%,100%{ opacity:.5; }
+    50%{ opacity:1; }
+  }
+
+  /* ---------- LETTER ---------- */
+
+  .letter-card{
+    width:min(420px, 100%);
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:0 30px 70px rgba(0,0,0,.45);
+    padding:46px 38px 28px;
+    position:relative;
+    perspective:1000px;
+  }
+
+  .letter-card::before{
+    content:"";
+    position:absolute;
+    top:10px;
+    left:10px;
+    right:10px;
+    bottom:10px;
+    border:1px solid var(--paper-shadow);
+    border-radius:3px;
+    pointer-events:none;
+  }
+
+  .page-content{
+    min-height:230px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+
+  .page-content.fade-out{
+    opacity:0;
+    transform:rotateY(8deg);
+  }
+
+  .page-content.fade-in{
+    animation:pageIn .35s ease;
+  }
+
+  @keyframes pageIn{
+    from{ opacity:0; transform:rotateY(-8deg); }
+    to{ opacity:1; transform:rotateY(0deg); }
+  }
+
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+
+  .page-content p{
+    font-size:17px;
+    line-height:1.85;
+    color:var(--ink);
+  }
+
+  .page-content p + p{
+    margin-top:14px;
+  }
+
+  .nav{
+    margin-top:30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .nav-btn{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:1px solid var(--paper-shadow);
+    background:transparent;
+    color:var(--ink);
+    font-size:18px;
+    cursor:pointer;
+    transition:background .2s ease, transform .15s ease, opacity .2s ease;
+  }
+
+  .nav-btn:hover:not(:disabled){
+    background:var(--paper-shadow);
+  }
+
+  .nav-btn:active:not(:disabled){
+    transform:scale(.92);
+  }
+
+  .nav-btn:disabled{
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .nav-btn:focus-visible,
+  .heart-btn:focus-visible,
+  .dot:focus-visible{
+    outline:2px solid var(--rose);
+    outline-offset:2px;
+  }
+
+  .dots{
+    display:flex;
+    gap:8px;
+  }
+
+  .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    border:none;
+    background:var(--paper-shadow);
+    cursor:pointer;
+    transition:background .2s ease, transform .2s ease;
+    padding:0;
+  }
+
+  .dot.active{
+    background:var(--rose);
+    transform:scale(1.3);
+  }
+
+  /* ---------- FINAL / HEART ---------- */
+
+  .heart-stage{
+    text-align:center;
+    position:relative;
+  }
+
+  .heart-btn{
+    border:none;
+    background:none;
+    font-size:46px;
+    color:var(--rose);
+    cursor:pointer;
+    line-height:1;
+    transition:transform .2s ease;
+    position:relative;
+  }
+
+  .heart-btn:hover{
+    transform:scale(1.08);
+  }
+
+  .heart-btn:active{
+    transform:scale(.92);
+  }
+
+  .heart-caption{
+    margin-top:10px;
+    font-size:12px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  .heart-response{
+    margin-top:18px;
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:18px;
+    color:var(--ink);
+    opacity:0;
+    transition:opacity .5s ease;
+  }
+
+  .heart-response.show{
+    opacity:1;
+  }
+
+  .particle{
+    position:absolute;
+    left:50%;
+    top:0;
+    font-size:14px;
+    color:var(--rose);
+    pointer-events:none;
+    animation:rise 1.1s ease-out forwards;
+  }
+
+  @keyframes rise{
+    0%{ opacity:1; transform:translate(-50%,0) scale(.8); }
+    100%{ opacity:0; transform:translate(var(--dx,0),-90px) scale(1.1); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .flap, .page-content, .heart-btn, .particle, .seal, .hint{
+      animation:none !important;
+      transition:opacity .2s ease !important;
+    }
+  }
+
+  @media (max-width:480px){
+    .letter-card{ padding:36px 24px 22px; }
+    .envelope{ width:240px; height:154px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="screen active" id="envelopeScreen">
+    <div class="envelope-wrap">
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="Open letter for Reyalis">
+        <div class="flap" id="flap"></div>
+        <div class="seal" id="seal">&#10084;</div>
+        <div class="env-body"></div>
+      </div>
+    </div>
+    <p class="to-label">For Reyalis</p>
+    <p class="hint">tap to open</p>
+  </div>
+
+  <div class="screen" id="letterScreen">
+    <div class="letter-card">
+      <div class="page-content" id="pageContent"></div>
+      <div class="nav">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous page">&#8249;</button>
+        <div class="dots" id="dots"></div>
+        <button class="nav-btn" id="nextBtn" aria-label="Next page">&#8250;</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const pages = [
+    {
+      eyebrow: "01",
+      html: `<p>I owe you an apology, Reyalis.</p><p>Not the quick kind. The kind where I actually sat with what I did before saying anything.</p>`
+    },
+    {
+      eyebrow: "02",
+      html: `<p>I hurt you, and I know "sorry" feels small for that.</p><p>But I see it — I see how it affected you, and it's been sitting heavy on me since.</p>`
+    },
+    {
+      eyebrow: "03",
+      html: `<p>You deserved someone who shows up, who's present, who means what they say.</p><p>I want to be that. Not by saying more, but by actually doing better.</p>`
+    },
+    {
+      eyebrow: "04",
+      html: `<p>I'm sorry, Reyalis.</p><p>I'd rather show you than just tell you — if you're willing to let me.</p>`,
+    },
+    {
+      eyebrow: "05",
+      isFinal: true,
+      html: `<div class="heart-stage">
+               <button class="heart-btn" id="heartBtn" aria-label="Tap if you're willing to talk">&#10084;</button>
+               <p class="heart-caption">tap if you're willing to talk</p>
+               <p class="heart-response" id="heartResponse">Thank you. I'll be here whenever you're ready.</p>
+             </div>`
+    }
+  ];
+
+  let current = 0;
+
+  const pageContent = document.getElementById('pageContent');
+  const dotsWrap = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function buildDots(){
+    dotsWrap.innerHTML = '';
+    pages.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot' + (i === current ? ' active' : '');
+      d.setAttribute('aria-label', 'Go to page ' + (i+1));
+      d.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(d);
+    });
+  }
+
+  function renderStatic(){
+    pageContent.innerHTML = `<p class="eyebrow">${pages[current].eyebrow}</p>` + pages[current].html;
+    buildDots();
+    updateNav();
+    if (pages[current].isFinal) attachHeart();
+  }
+
+  function goTo(index){
+    if (index === current || index < 0 || index >= pages.length) return;
+    current = index;
+    if (reduced){
+      renderStatic();
+      return;
+    }
+    pageContent.classList.add('fade-out');
+    setTimeout(() => {
+      pageContent.innerHTML = `<p class="eyebrow">${pages[current].eyebrow}</p>` + pages[current].html;
+      pageContent.classList.remove('fade-out');
+      pageContent.classList.add('fade-in');
+      setTimeout(() => pageContent.classList.remove('fade-in'), 350);
+      buildDots();
+      updateNav();
+      if (pages[current].isFinal) attachHeart();
+    }, 280);
+  }
+
+  function updateNav(){
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === pages.length - 1;
+  }
+
+  function attachHeart(){
+    const heartBtn = document.getElementById('heartBtn');
+    const response = document.getElementById('heartResponse');
+    if (!heartBtn) return;
+    heartBtn.addEventListener('click', () => {
+      response.classList.add('show');
+      if (!reduced) burst(heartBtn);
+    });
+  }
+
+  function burst(origin){
+    const rect = origin.getBoundingClientRect();
+    for (let i = 0; i < 8; i++){
+      const p = document.createElement('span');
+      p.className = 'particle';
+      p.textContent = '\u2764';
+      const dx = (Math.random() - 0.5) * 80;
+      p.style.setProperty('--dx', dx + 'px');
+      p.style.left = (rect.left + rect.width/2) + 'px';
+      p.style.top = (rect.top) + 'px';
+      p.style.position = 'fixed';
+      p.style.fontSize = (10 + Math.random()*8) + 'px';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1200);
+    }
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    const letterActive = document.getElementById('letterScreen').classList.contains('active');
+    if (!letterActive) return;
+    if (e.key === 'ArrowRight') goTo(current + 1);
+    if (e.key === 'ArrowLeft') goTo(current - 1);
+  });
+
+  function openEnvelope(){
+    const envelope = document.getElementById('envelope');
+    if (envelope.classList.contains('open')) return;
+    envelope.classList.add('open');
+    const delay = reduced ? 50 : 750;
+    setTimeout(() => {
+      document.getElementById('envelopeScreen').classList.remove('active');
+      document.getElementById('letterScreen').classList.add('active');
+      renderStatic();
+    }, delay);
+  }
+
+  const envelope = document.getElementById('envelope');
+  envelope.addEventListener('click', openEnvelope);
+  envelope.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      openEnvelope();
+    }
+  });
+</script>
+
+</body>
+</html>
